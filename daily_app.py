@@ -22,6 +22,7 @@ st.set_page_config(
      }
 )
 
+
 ## 处理数据
 @st.cache(allow_output_mutation=True)
 def getData():
@@ -409,54 +410,12 @@ col3.plotly_chart(fig11, use_container_width=True)
 # st.dataframe(news_df)
 # st.table(news_df)
 
-## 作图
 
-# plot1_df['size'] = 3
-# plot1_df['industry'] = [level(x) for x in plot1_df.index]
-# fig1 = px.scatter(plot1_df,  # 数据集
-#                  x="值-PE",  # x轴
-#                  y="值-PS",  # y轴
-#                  text=plot1_df.index,  # 显示文字
-#                  size='size',
-#                  color='industry'
-#                 )
-# fig1.update_traces(textposition="top right") #文字显示位置
-# plotly.offline.plot(fig1, filename='fig01.html', auto_open=False)
-#
-# plot2_df['size'] = 3
-# plot2_df['industry'] = [level(x) for x in plot2_df.index]
-# fig2 = px.scatter(plot2_df,  # 数据集
-#                  x="分位数-PE",  # x轴
-#                  y="分位数-PS",  # y轴
-#                  text=plot2_df.index,  # 显示文字
-#                  size='size',
-#                  color='industry'
-#                 )
-# fig2.update_traces(textposition="top right") #文字显示位置
-# fig2.update_layout( xaxis_range=[0,1], yaxis_range=[0,1])
-# plotly.offline.plot(fig2, filename='fig02.html', auto_open=False)
-#
-# plot3_df['size'] = 3
-# plot3_df['industry'] = [level(x) for x in plot3_df.index]
-# fig3 = px.scatter(plot3_df,  # 数据集
-#                  x="值-日涨跌幅",  # x轴
-#                  y="值-换手率",  # y轴
-#                  text=plot3_df.index,  # 显示文字
-#                  size='size',
-#                  color='industry'
-#                 )
-# fig3.update_traces(textposition="top right") #文字显示位置
-# plotly.offline.plot(fig3, filename='fig03.html', auto_open=False)
-#
-# plot4_df['size'] = 3
-# plot4_df['industry'] = [level(x) for x in plot4_df.index]
-# fig4 = px.scatter(plot4_df,  # 数据集
-#                  x="分位数-日涨跌幅",  # x轴
-#                  y="分位数-换手率",  # y轴
-#                  text=plot4_df.index,  # 显示文字
-#                  size='size',
-#                  color='industry'
-#                 )
-# fig4.update_traces(textposition="top right") #文字显示位置
-# fig4.update_layout( xaxis_range=[0,1], yaxis_range=[0,1])
-# plotly.offline.plot(fig4, filename='fig04.html', auto_open=False)
+## >>>>> css设置 <<<<<
+hide_menu_style = """
+        <style>
+            #MainMenu {visibility: hidden;}
+        </style>
+        """
+
+st.markdown(hide_menu_style, unsafe_allow_html=True)
