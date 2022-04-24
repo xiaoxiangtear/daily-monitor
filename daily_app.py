@@ -316,60 +316,92 @@ def getContent():
 
     daily_content = f'''
     **【日涨跌幅】**\n
-    **A股个股**\n
+    **A股个股**\r
     ~~~
-    涨：{str_ror_high}\n
+    涨：{str_ror_high}\r
     跌：{str_ror_low}
     ~~~
-    **A股板块**\n
+    **A股板块**\r
     ~~~
-    涨：{str_sec_ror_high}\n
+    涨：{str_sec_ror_high}\r
     跌：{str_sec_ror_low}
     ~~~
-    **港股个股**\n
+    **港股个股**\r
     ~~~
-    涨：{str_hror_high}\n
+    涨：{str_hror_high}\r
     跌：{str_hror_low}
     ~~~
     **【换手率】**\n
-    **A股个股**\n
+    **A股个股**\r
     ~~~
-    高：{str_to_high}\n
+    高：{str_to_high}\r
     低：{str_to_low}
     ~~~
-    **A股板块**\n
+    **A股板块**\r
     ~~~
-    高：{str_sec_to_high}\n
+    高：{str_sec_to_high}\r
     低：{str_sec_to_low}
     ~~~
-    **港股个股**\n
+    **港股个股**\r
     ~~~
-    高：{str_hto_high}\n
+    高：{str_hto_high}\r
     低：{str_hto_low}
     ~~~
     **【北向资金】**\n
-    **持股变化(万股)**\n
+    **持股变化(万股)**\r
     ~~~
-    流入前3行业：{str_north_high}\n
+    流入前3行业：{str_north_high}\r
     流入后3行业：{str_north_low}
     ~~~
     **【融资融券】**\n
-    **融资-融券余额(亿元)**\n
+    **融资-融券余额(亿元)**\r
     ~~~
-    高：{str_longshort_high}\n
+    高：{str_longshort_high}\r
     低：{str_longshort_low}
     ~~~
     '''
 
-    return daily_content
+    daily_content_download = f'''
+        【日涨跌幅】\r
+        >>> A股个股 <<<\r
+        涨：{str_ror_high}\r
+        跌：{str_ror_low}
+        >>> A股板块 <<<\r
+        涨：{str_sec_ror_high}\r
+        跌：{str_sec_ror_low}
+        >>> 港股个股 <<<\r
+        涨：{str_hror_high}\r
+        跌：{str_hror_low}
+        【换手率】\r
+        >>> A股个股 <<<\r
+        高：{str_to_high}\r
+        低：{str_to_low}
+        >>> A股板块 <<<\r
+        高：{str_sec_to_high}\r
+        低：{str_sec_to_low}
+        >>> 港股个股 <<<\r
+        高：{str_hto_high}\r
+        低：{str_hto_low}
+        【北向资金】\r
+        >>> 持股变化(万股) <<<\r
+        流入前3行业：{str_north_high}\r
+        流入后3行业：{str_north_low}
+        【融资融券】\r
+        >>> 融资-融券余额(亿元) <<<\r
+        高：{str_longshort_high}\r
+        低：{str_longshort_low}
+        '''
+
+    return daily_content, daily_content_download
 
 ## Streamlit可视化
 ## >>>>> 页面主体 <<<<<
-st.title('每日监测')
-content = getContent()
-print(content)
+ror_df2 = Data_dic['ror_df']
+latest_date = ror_df2['更新日'].max()
+st.title(f'每日监测（更新日期：{latest_date}）')
+content, content_download = getContent()
 st.write(content)
-st.download_button('下载', content, '每日监测.txt')
+st.download_button('下载', content_download, '每日监测.txt')
 
 st.markdown('## 日涨跌幅')
 col1, col2, col3= st.columns(3)
