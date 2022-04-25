@@ -38,11 +38,11 @@ def getData():
 
     ror_df = pd.read_sql('select * from `ror`', con=conn)
     hror_df = pd.read_sql('select * from `hror`', con=conn)
-    sec_ror_df = pd.read_sql('select * from `sec_ror`', con=conn)
+    sec_ror_df = pd.read_sql('select * from `sec_ror`', con=conn).rename(columns={'index':'板块'})
 
     to_df = pd.read_sql('select * from `to`', con=conn)
     hto_df = pd.read_sql('select * from `hto`', con=conn)
-    sec_to_df = pd.read_sql('select * from `sec_to`', con=conn)
+    sec_to_df = pd.read_sql('select * from `sec_to`', con=conn).rename(columns={'index':'板块'})
 
     north1_df = pd.read_sql('select * from `north1`', con=conn)
     north2_df = pd.read_sql('select * from `north2`', con=conn)
@@ -151,6 +151,8 @@ fig6.update_layout(yaxis_range=[0,1])
 ## ===== 北向资金 =====
 ## 持仓分布
 north1_df = Data_dic['north1_df']
+latest_date = north1_df['更新日'].max()
+north1_df = north1_df[north1_df['更新日']==latest_date]
 north1_sr = north1_df.groupby(by='三级行业')['值'].sum()
 
 fig7 = px.pie(north1_sr.to_frame('持仓市值'),
@@ -159,6 +161,8 @@ fig7 = px.pie(north1_sr.to_frame('持仓市值'),
 
 ## 持股变化
 north2_df = Data_dic['north2_df']
+latest_date = north2_df['更新日'].max()
+north2_df = north2_df[north2_df['更新日']==latest_date]
 north2_sr = north2_df.groupby(by='三级行业')['值'].sum() / 10000
 north2_sr = north2_sr.sort_values(ascending=False)
 
@@ -169,6 +173,8 @@ fig8 = px.bar(north2_sr.to_frame('持股变化(万股)'),
 ## ===== 融资融券 =====
 ## 融资余额
 long_df = Data_dic['long_df']
+latest_date = long_df['更新日'].max()
+long_df = long_df[long_df['更新日']==latest_date]
 long_df['行业'] = long_df['申万行业分类'].apply(lambda x: x.split('--')[1])
 long_df = long_df[['股票名称', '值', '分位数', '行业']].rename(columns={'值':'融资余额','分位数':'融资余额-分位数'})
 
@@ -182,6 +188,8 @@ fig9.update_layout(yaxis_range=[0,1])
 
 ## 融券余额
 short_df = Data_dic['short_df']
+latest_date = short_df['更新日'].max()
+short_df = short_df[short_df['更新日']==latest_date]
 short_df['行业'] = short_df['申万行业分类'].apply(lambda x: x.split('--')[1])
 short_df = short_df[['股票名称', '值', '分位数', '行业']].rename(columns={'值':'融券余额','分位数':'融券余额-分位数'})
 
@@ -194,6 +202,8 @@ fig10.update_layout(yaxis_range=[0,1])
 
 ## 融资余额-融券余额
 longshort_df = Data_dic['longshort_df']
+latest_date = longshort_df['更新日'].max()
+longshort_df = longshort_df[longshort_df['更新日']==latest_date]
 longshort_df['行业'] = longshort_df['申万行业分类'].apply(lambda x: x.split('--')[1])
 longshort_df = longshort_df[['股票名称', '值', '分位数', '行业']].rename(columns={'值':'融资-融券余额','分位数':'融资-融券余额-分位数'})
 
@@ -390,6 +400,10 @@ def getContent():
         >>> 融资-融券余额(亿元) <<<\r
         高：{str_longshort_high}\r
         低：{str_longshort_low}
+        
+        ————————————————————
+        具体可参看网页：https://share.streamlit.io/xiaoxiangtear/daily-monitor/main/daily_app.py
+        
         '''
 
     return daily_content, daily_content_download
@@ -401,7 +415,7 @@ latest_date = ror_df2['更新日'].max()
 st.title(f'每日监测（更新日期：{latest_date}）')
 content, content_download = getContent()
 st.write(content)
-st.download_button('下载', content_download, '每日监测.txt')
+st.download_button('下载', content_download, f'每日监测（更新日期：{latest_date}）.txt')
 
 st.markdown('## 日涨跌幅')
 col1, col2, col3= st.columns(3)
