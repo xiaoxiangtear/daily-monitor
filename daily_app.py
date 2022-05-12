@@ -53,6 +53,8 @@ def getData():
 
     news_df = pd.read_sql('select * from `news`', con=conn)
 
+    core_df = pd.read_sql('select * from `核心池`', con=conn)
+
     data_dic = {
         'ror_df':ror_df,
         'to_df':to_df,
@@ -69,16 +71,42 @@ def getData():
         'short_df':short_df,
         'longshort_df':longshort_df,
         'news_df':news_df,
+        'core_df':core_df,
     }
 
     return data_dic
 
+def core_func(x,y):
+
+    if x[-2:] == 'HK' and abs(float(y)) >= 0.07:
+        return True
+    elif ((x[:2] == '30') or (x[:2] == '68')) and abs(float(y)) >= 0.15:
+        return True
+    elif ((x[:2] == '00') or (x[:2] == '60')) and abs(float(y)) >= 0.7:
+        return True
+    else:
+        return False
+
 ## 全局数据
 Data_dic = getData()
 
+## ===== 核心池监测 =====
+ror_df = Data_dic['ror_df']
+hror_df = Data_dic['hror_df']
+ror_df_all = pd.concat([ror_df, hror_df], axis=0)
+core_df = Data_dic['core_df']
+core_lt = list(core_df['股票代码'].unique())
+ib = ror_df_all['index'].isin(core_lt)
+ror_df_core = ror_df_all[ib]
+print(ror_df_core)
+ib2 = ror_df_core.apply(lambda x: core_func(x.iloc[0], x.iloc[2]), axis=1)
+alert_df = ror_df_core[ib2]
+
+print(alert_df)
+
 ## ===== 日涨跌幅 =====
 ## A股个股
-ror_df = Data_dic['ror_df']
+# ror_df = Data_dic['ror_df']
 ror_df = ror_df[['股票名称', '申万行业分类', '值', '分位数']].rename(columns={'值':'日涨跌幅','分位数':'日涨跌幅-分位数'})
 
 ror_df['行业'] = ror_df['申万行业分类'].apply(lambda x: x.split('--')[1])
@@ -103,7 +131,7 @@ fig2 = px.scatter(sec_ror_df,  # 数据集
 fig2.update_layout(yaxis_range=[0,1])
 
 ## 港股个股
-hror_df = Data_dic['hror_df']
+# hror_df = Data_dic['hror_df']
 hror_df = hror_df[['股票名称', '值', '分位数']].rename(columns={'值':'日涨跌幅','分位数':'日涨跌幅-分位数'})
 
 fig3 = px.scatter(hror_df,  # 数据集
@@ -215,6 +243,29 @@ fig11 = px.scatter(longshort_df,  # 数据集
 fig11.update_layout(yaxis_range=[0,1])
 
 ## ===== 提醒内容生成 =====
+def funcContent_core(core_df, alert_df):
+
+    core_df = core_df.sort_values(by='值',ascending=False)
+    n = core_df.shape[0]
+    str_core = ''
+    for i in range(n):
+        h = core_df.iat[i, 7]
+        v_h = core_df.iat[i, 2]
+        str_core += f'{h}({v_h:.1%}),'
+
+    if alert_df.empty == True:
+        str_alert = '无,'
+    else:
+        alert_df = alert_df.sort_values(by='值', ascending=False)
+        n = alert_df.shape[0]
+        str_alert = ''
+        for i in range(n):
+            h = alert_df.iat[i, 7]
+            v_h = alert_df.iat[i, 2]
+            str_alert += f'{h}({v_h:.1%}),'
+
+    return str_alert[:-1], str_core[:-1]
+
 def funcContent(name, data_df, high, low, multiple=1):
 
     df = data_df.copy().sort_values(by=f'{name}', ascending=False)
@@ -312,6 +363,7 @@ def getContent():
     high = 0.99
     low = 0.01
     # 日涨跌幅
+    str_alert, str_core = funcContent_core(ror_df_core, alert_df)
     str_ror_high, str_ror_low = funcContent('日涨跌幅', ror_df, high, low)
     str_sec_ror_high, str_sec_ror_low = funcContent_sec('日涨跌幅', sec_ror_df, high, low)
     str_hror_high, str_hror_low = funcContent('日涨跌幅', hror_df, high, low)
@@ -326,6 +378,12 @@ def getContent():
 
     daily_content = f'''
     **【日涨跌幅】**\n
+    **核心池**\r
+    ~~~
+    超过预警线核心池股票：{str_alert}
+    ——————————————————————
+    核心池：{str_core}
+    ~~~   
     **A股个股**\r
     ~~~
     涨：{str_ror_high}\r
