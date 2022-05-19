@@ -54,6 +54,8 @@ def getData():
     news_df = pd.read_sql('select * from `news`', con=conn)
 
     core_df = pd.read_sql('select * from `核心池`', con=conn)
+    basis_df = pd.read_sql('select * from `基础池`', con=conn)
+    print(basis_df)
 
     data_dic = {
         'ror_df':ror_df,
@@ -72,6 +74,7 @@ def getData():
         'longshort_df':longshort_df,
         'news_df':news_df,
         'core_df':core_df,
+        'basis_df':basis_df,
     }
 
     return data_dic
@@ -98,11 +101,19 @@ core_df = Data_dic['core_df']
 core_lt = list(core_df['股票代码'].unique())
 ib = ror_df_all['index'].isin(core_lt)
 ror_df_core = ror_df_all[ib]
-print(ror_df_core)
 ib2 = ror_df_core.apply(lambda x: core_func(x.iloc[0], x.iloc[2]), axis=1)
-alert_df = ror_df_core[ib2]
+alert_df_core = ror_df_core[ib2]
 
-print(alert_df)
+## ===== 基础池监测 =====
+basis_df = Data_dic['basis_df']
+print(basis_df)
+basis_lt = list(basis_df['股票代码'].unique())
+ib = ror_df_all['index'].isin(basis_lt)
+ror_df_basis = ror_df_all[ib]
+print(ror_df_basis)
+ib2 = ror_df_basis.apply(lambda x: core_func(x.iloc[0], x.iloc[2]), axis=1)
+alert_df_basis = ror_df_basis[ib2]
+print(alert_df_basis)
 
 ## ===== 日涨跌幅 =====
 ## A股个股
@@ -251,6 +262,8 @@ def funcContent_core(core_df, alert_df):
     for i in range(n):
         h = core_df.iat[i, 7]
         v_h = core_df.iat[i, 2]
+        code = core_df.iat[i, 0]
+        if code[-2:] == 'HK' and not 'B' in h: h = h + '-B'
         str_core += f'{h}({v_h:.1%}),'
 
     if alert_df.empty == True:
@@ -262,6 +275,8 @@ def funcContent_core(core_df, alert_df):
         for i in range(n):
             h = alert_df.iat[i, 7]
             v_h = alert_df.iat[i, 2]
+            code = core_df.iat[i, 0]
+            if code[-2:] == 'HK' and not 'B' in h: h = h + '-B'
             str_alert += f'{h}({v_h:.1%}),'
 
     return str_alert[:-1], str_core[:-1]
@@ -357,13 +372,13 @@ def funcContent_longshort(name, data_df, high, low, multiple=1):
 
     return str_h[:-1], str_l[:-1]
 
-
 def getContent():
 
     high = 0.99
     low = 0.01
     # 日涨跌幅
-    str_alert, str_core = funcContent_core(ror_df_core, alert_df)
+    str_alert_core, str_core = funcContent_core(ror_df_core, alert_df_core)
+    str_alert_basis, str_basis = funcContent_core(ror_df_basis, alert_df_basis)
     str_ror_high, str_ror_low = funcContent('日涨跌幅', ror_df, high, low)
     str_sec_ror_high, str_sec_ror_low = funcContent_sec('日涨跌幅', sec_ror_df, high, low)
     str_hror_high, str_hror_low = funcContent('日涨跌幅', hror_df, high, low)
@@ -380,10 +395,16 @@ def getContent():
     **【日涨跌幅】**\n
     **核心池**\r
     ~~~
-    超过预警线核心池股票：{str_alert}
+    超过预警线核心池股票：{str_alert_core}
     ——————————————————————
     核心池：{str_core}
     ~~~   
+    **基础池**\r
+    ~~~
+    超过预警线基础池股票：{str_alert_basis}
+    ——————————————————————
+    基础池：{str_basis}
+    ~~~  
     **A股个股**\r
     ~~~
     涨：{str_ror_high}\r
